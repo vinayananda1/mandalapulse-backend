@@ -1,0 +1,104 @@
+<!-- verify.html — MandalaPulse Page 2 Invocation Scroll -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MandalaPulse Verification</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f5f5f5;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .affirmation {
+      font-size: 1.5em;
+      color: green;
+      margin-bottom: 20px;
+    }
+    .meeting-info {
+      font-size: 1.2em;
+      color: #333;
+    }
+    .user-role {
+      font-size: 1em;
+      color: #555;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="affirmation" id="welcome">🧘🏽‍♂️ Awaiting invocation...</div>
+  <div class="user-role" id="roleInfo"></div>
+  <div class="meeting-info" id="meetingInfo">🕰️ Loading meeting details...</div>
+
+  <!-- Firebase SDK Integration -->
+  <script type="module">
+    // 🌿 Firebase imports
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-database.js";
+
+    // 🔐 Firebase config — sealed with your credentials
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_ZgFPk96jknJHGM23QNbC14utVbpBZzM",
+      authDomain: "mandalapulse108.firebaseapp.com",
+      databaseURL: "https://mandalapulse108-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "mandalapulse108",
+      storageBucket: "mandalapulse108.appspot.com",
+      messagingSenderId: "646421365207",
+      appId: "1:646421365207:web:d0efbb1484362bbcae8b92"
+    };
+
+    // 🔥 Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // 🌸 Parse username from query string
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get("username");
+    const welcomeDiv = document.getElementById("welcome");
+    const roleDiv = document.getElementById("roleInfo");
+
+    if (username) {
+      welcomeDiv.textContent = `✅ Invocation affirmed. Welcome, ${username}!`;
+
+      // 🧾 Fetch user role
+      const userRef = ref(db, `users/${username}`);
+      get(userRef).then((snapshot) => {
+        if (snapshot.exists()) {
+          const user = snapshot.val();
+          roleDiv.textContent = `🧾 Role: ${user.role || "Unspecified"}`;
+        } else {
+          roleDiv.textContent = "⚠️ No user data found.";
+        }
+      }).catch((error) => {
+        roleDiv.textContent = "❌ Error fetching user data: " + error.message;
+      });
+
+    } else {
+      welcomeDiv.textContent = `⚠️ Invocation incomplete. No username detected.`;
+    }
+
+    // 🕰️ Fetch meeting details from Firebase
+    const meetingRef = ref(db, "meetings/today");
+    get(meetingRef).then((snapshot) => {
+      const infoDiv = document.getElementById("meetingInfo");
+      if (snapshot.exists()) {
+        const data = snapshot.val();
+        const meetingTime = data.time || "Unknown";
+        const status = data.status || "scheduled";
+
+        infoDiv.innerHTML = `
+          🕰️ Next meeting: <strong>${meetingTime} IST</strong><br />
+          📌 Status: ${status}<br />
+          🔔 Ping will activate 5 minutes before
+        `;
+      } else {
+        infoDiv.textContent = "⚠️ No meeting data found.";
+      }
+    }).catch((error) => {
+      document.getElementById("meetingInfo").textContent = "❌ Error fetching meeting data: " + error.message;
+    });
+  </script>
+</body>
+</html>
