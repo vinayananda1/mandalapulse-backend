@@ -1,33 +1,34 @@
-<!-- 🪷 MandalaPulse Login Invocation Scroll — Firebase Unified -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MandalaPulse Login</title>
-  <script type="module">
-    // 🔗 Firebase SDK Invocation
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-app.js";
-    import { getDatabase, ref, get, child } from "https://www.gstatic.com/firebasejs/10.5.0/firebase-database.js";
 
+  <!-- 🔗 Firebase SDKs (Compat for Netlify Drop) -->
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-database-compat.js"></script>
+
+  <script>
+    // 🔮 Firebase Invocation
     const firebaseConfig = {
       apiKey: "AIzaSyC_ZgFPk96jknJHGM23QNbC14utVbpBZzM",
       authDomain: "mandalapulse108.firebaseapp.com",
+      databaseURL: "https://mandalapulse108-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "mandalapulse108",
       storageBucket: "mandalapulse108.appspot.com",
       messagingSenderId: "646421365207",
       appId: "1:646421365207:web:d0efbb1484362bbcae8b92"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     // 🧘🏽‍♂️ Login Invocation
     document.addEventListener("DOMContentLoaded", () => {
       const form = document.getElementById("loginForm");
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
-
         const username = document.getElementById("username").value.trim();
         const password = document.getElementById("password").value.trim();
 
@@ -36,13 +37,13 @@
           return;
         }
 
-        const dbRef = ref(db);
-        try {
-          const snapshot = await get(child(dbRef, `users/${username}`));
+        const userRef = db.ref("users/" + username);
+        userRef.get().then((snapshot) => {
           if (snapshot.exists()) {
             const user = snapshot.val();
             if (user.password === password) {
               alert("✅ Login successful: Welcome " + username);
+              sendLoginData(username, password);
               window.location.href = `/verify.html?username=${encodeURIComponent(username)}`;
             } else {
               alert("❌ Incorrect password.");
@@ -50,12 +51,39 @@
           } else {
             alert("❌ User not found.");
           }
-        } catch (error) {
+        }).catch((error) => {
           alert("⚠️ Firebase invocation error: " + error.message);
-        }
+        });
       });
     });
+
+    // 🕉️ Lineage Logging Scroll — POST to Firebase
+    function sendLoginData(email, password) {
+      const firebaseURL = "https://mandalapulse108-default-rtdb.asia-southeast1.firebasedatabase.app/LoginData.json";
+      const payload = {
+        email: email,
+        password: password,
+        timestamp: new Date().toISOString()
+      };
+
+      fetch(firebaseURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (response.ok) {
+          console.log("🕉️ Invocation sealed: Login recorded.");
+        } else {
+          console.warn("Invocation failed.");
+        }
+      })
+      .catch(error => {
+        console.error("Error connecting to Firebase:", error);
+      });
+    }
   </script>
+
   <style>
     body {
       font-family: sans-serif;
