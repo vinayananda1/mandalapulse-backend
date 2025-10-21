@@ -1,0 +1,53 @@
+// MandalaPulse Backend Invocation Scroll — Realtime DB Linked
+const functions = require('firebase-functions');
+const admin = require('firebase-admin');
+const express = require('express');
+const cors = require('cors');
+
+admin.initializeApp();
+
+const app = express();
+app.use(cors({ origin: true }));
+app.use(express.json());
+
+const db = admin.database(); // Realtime Database invocation
+
+app.post('/', async (req, res) => {
+  const { username = '', password = '' } = req.body;
+
+  try {
+    // Query LoginData for a matching username
+    const snap = await db.ref('AuthRegistry/LoginData').orderByChild('username').equalTo(username).once('value');
+
+    if (!snap.exists()) {
+      return res.status(401).send({ success: false, message: 'User not found' });
+    }
+
+    // Find the first exact match
+    let matched = null;
+    snap.forEach(child => {
+      const val = child.val();
+      if (String(val.username).trim() === String(username).trim()) {
+        matched = val;
+        return true; // stop iterating
+      }
+    });
+
+    if (!matched) {
+      return res.status(401).send({ success: false, message: 'User not found' });
+    }
+
+    const inputPassword = String(password).trim();
+    const storedPassword = String(matched.password || '').trim();
+
+    if (storedPassword === inputPassword) {
+      return res.status(200).send({ success: true, message: `Welcome, ${username}` });
+    } else {
+      return res.status(401).send({ success: false, message: 'Invalid password' });
+    }
+  } catch (error) {
+    return res.status(500).send({ success: false, message: 'Invocation error: ' + error.message });
+  }
+});
+
+exports.verifyLogin = functions.https.onRequest(app);
