@@ -1,4 +1,4 @@
-// MandalaPulse Backend Invocation Scroll — Firestore Linked
+/* MandalaPulse Backend Invocation Scroll — Realtime DB Linked */
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const express = require('express');
@@ -8,37 +8,37 @@ admin.initializeApp();
 
 const app = express();
 app.use(cors({ origin: true }));
-app.use(express.json()); // 🌬️ Parse JSON body
+app.use(express.json());
 
-const db = admin.firestore(); // 🔗 Firestore invocation
+const db = admin.database();
 
-// 🌸 Sacred POST route
 app.post('/', async (req, res) => {
-  const { username, password } = req.body;
-
+  const { username = '', password = '' } = req.body;
   try {
-    // 🌿 Retrieve document from LoginData collection
-    const userDoc = await db.collection('LoginData').doc(username).get();
+    const snap = await db.ref('AuthRegistry/LoginData').orderByChild('username').equalTo(username).once('value');
+    if (!snap.exists()) return res.status(401).send({ success: false, message: 'User not found' });
 
-    if (!userDoc.exists) {
-      return res.status(401).send({ success: false, message: 'User not found' });
-    }
+    let matched = null;
+    snap.forEach(child => {
+      const val = child.val();
+      if (String(val.username).trim() === String(username).trim()) {
+        matched = val;
+        return true;
+      }
+    });
 
-    const data = userDoc.data();
+    if (!matched) return res.status(401).send({ success: false, message: 'User not found' });
 
-    // 🌬️ Normalize and compare passwords
-    const inputPassword = password.trim();
-    const storedPassword = data.password.trim();
+    const inputPassword = String(password).trim();
+    const storedPassword = String(matched.password || '').trim();
 
     if (storedPassword === inputPassword) {
-      res.status(200).send({ success: true, message: 'Welcome, Vinayananda' });
-    } else {
-      res.status(401).send({ success: false, message: 'Invalid password' });
+      return res.status(200).send({ success: true, message: `Welcome, ${username}` });
     }
+    return res.status(401).send({ success: false, message: 'Invalid password' });
   } catch (error) {
-    res.status(500).send({ success: false, message: 'Invocation error: ' + error.message });
+    return res.status(500).send({ success: false, message: 'Invocation error: ' + error.message });
   }
 });
 
-// 🌐 Export the function
 exports.verifyLogin = functions.https.onRequest(app);
