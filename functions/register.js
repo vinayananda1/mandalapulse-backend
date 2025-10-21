@@ -7,7 +7,7 @@ const cors = require('cors');
 if (!admin.apps.length) admin.initializeApp();
 
 const regApp = express();
-regApp.use(cors({ origin: true })); // replace origin: true with a strict allowlist later
+regApp.use(cors({ origin: true }));
 regApp.use(express.json());
 
 const rtdb = admin.database();
@@ -21,7 +21,6 @@ regApp.post('/', async (req, res) => {
     const cleanUser = String(username).trim().slice(0, 128);
     const cleanPass = String(password).trim().slice(0, 256);
 
-    // push new record under AuthRegistry/LoginData
     const ref = rtdb.ref('AuthRegistry/LoginData').push();
     await ref.set({
       username: cleanUser,
