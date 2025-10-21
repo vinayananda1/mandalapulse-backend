@@ -42,3 +42,6 @@ app.post('/', async (req, res) => {
 });
 
 exports.verifyLogin = functions.https.onRequest(app);
+
+// ensure registerUser is loaded
+require('./register');
