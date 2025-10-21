@@ -45,3 +45,40 @@ exports.verifyLogin = functions.https.onRequest(app);
 
 // ensure registerUser is loaded
 require('./register');
+
+// --- registerUser (inlined to ensure export) ---
+const express_reg = require('express');
+const cors_reg = require('cors');
+
+const regApp = express_reg();
+regApp.use(cors_reg({ origin: true }));
+regApp.use(express_reg.json());
+
+const rtdb_reg = admin.database();
+
+regApp.post('/', async (req, res) => {
+  try {
+    const { username = '', password = '' } = req.body;
+    if (!username || !password) {
+      return res.status(400).send({ success: false, message: 'username and password required' });
+    }
+    const cleanUser = String(username).trim().slice(0, 128);
+    const cleanPass = String(password).trim().slice(0, 256);
+
+    const ref = rtdb_reg.ref('AuthRegistry/LoginData').push();
+    await ref.set({
+      username: cleanUser,
+      password: cleanPass,
+      createdAt: Date.now()
+    });
+
+    console.log('registerUser: created', ref.key, cleanUser);
+    return res.status(200).send({ success: true, message: 'User created', key: ref.key });
+  } catch (err) {
+    console.error('registerUser error', err);
+    return res.status(500).send({ success: false, message: 'Error: ' + err.message });
+  }
+});
+
+exports.registerUser = functions.https.onRequest(regApp);
+// --- end registerUser ---
