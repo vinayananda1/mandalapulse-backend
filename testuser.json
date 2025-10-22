@@ -1,0 +1,15 @@
+
+{
+  "users": {
+    "testuser": {
+      "password": "testpass",
+      "role": "Seeker"
+    }
+  },
+  "meetings": {
+    "today": {
+      "time": "16:30",
+      "status": "scheduled"
+    }
+  }
+}
