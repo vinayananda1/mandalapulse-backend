@@ -135,8 +135,8 @@ regApp.post('/', async (req, res) => {
 });
 
 // Export functions
-exports.verifyLogin = functions.runWith({ memory: '256MB' }).https.onRequest(app);
-exports.registerUser = functions.runWith({ memory: '256MB' }).https.onRequest(regApp);
+exports.verifyLogin = functions.https.onRequest(app);
+exports.registerUser = functions.https.onRequest(regApp);
 
 // OPTIONAL: small protection guidance (not active code)
 // - Add rate-limiting middleware in front of verifyLogin to limit brute-force attempts.
