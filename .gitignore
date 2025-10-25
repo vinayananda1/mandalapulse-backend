@@ -1,26 +1,3 @@
-# 🔒 MandalaPulse Git Purification Scroll
-
-# Node modules and Netlify CLI artifacts
-node_modules/
-.netlify/
-
-# Firebase secrets and credentials
-firebase-debug.log
-firebase.json
-serviceAccountKey.json
-
-# OS and editor clutter
-.DS_Store
-Thumbs.db
-*.log
-
-# IDE and environment files
-.vscode/
-.env
-.env.local
-.env.production
-.env.development
-
-# Build artifacts (if any)
-dist/
-build/
+sa.json
+*.key
+*.pem
